@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLG · S16 全球总决赛胜率模拟</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #151b24;
+    --panel-2: #1b2330;
+    --line: #2b3545;
+    --text: #eef2f7;
+    --muted: #8d99ab;
+    --blue: #45a6ff;
+    --gold: #f4c95d;
+    --red: #ff5c68;
+    --green: #4fd69b;
+    --violet: #b78cff;
+    --cyan: #57d8d3;
+    --orange: #ff9f5a;
+    --lpl: #45a6ff;
+    --lck: #ff5c68;
+    --lec: #f4c95d;
+    --lcs: #57d8d3;
+    --lcp: #b78cff;
+    --cblol: #ff9f5a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { background: var(--bg); }
+
+  body {
+    margin: 0;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 15% -10%, rgba(69, 166, 255, .12), transparent 34rem),
+      radial-gradient(circle at 85% 5%, rgba(255, 92, 104, .09), transparent 28rem),
+      var(--bg);
+    font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    line-height: 1.45;
+  }
+
+  .shell {
+    width: min(1440px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 28px 0 56px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+
+  .badge {
+    flex: 0 0 auto;
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(244, 201, 93, .7);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #f4c95d 0 28%, #141a23 28% 70%, #f4c95d 70% 100%);
+    color: #111827;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 0;
+    box-shadow: 0 10px 30px rgba(244, 201, 93, .12);
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: clamp(20px, 3vw, 32px);
+    letter-spacing: 0;
+    font-weight: 800;
+  }
+
+  .brand p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .source-pill {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .source-pill a { color: var(--cyan); text-decoration: none; }
+  .source-pill a:hover { text-decoration: underline; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .metric {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,.025), transparent), var(--panel);
+  }
+
+  .metric .label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .metric .value {
+    display: block;
+    margin-top: 7px;
+    font-size: clamp(22px, 3vw, 32px);
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .metric .sub { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; }
+
+  .metric.blue .value { color: var(--blue); }
+  .metric.gold .value { color: var(--gold); }
+  .metric.red .value { color: var(--red); }
+  .metric.green .value { color: var(--green); }
+  .metric.violet .value { color: var(--violet); }
+
+  .section {
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .section-head h2 { margin: 0; font-size: 17px; font-weight: 750; }
+  .section-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+
+  .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+  .segmented {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-2);
+    overflow: hidden;
+  }
+
+  .segmented button {
+    border: 0;
+    padding: 8px 13px;
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .segmented button.active {
+    color: #10151c;
+    background: var(--gold);
+    font-weight: 750;
+  }
+
+  .run-button {
+    border: 1px solid rgba(69,166,255,.55);
+    color: var(--blue);
+    background: transparent;
+    padding: 8px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+  }
+  .run-button:hover { background: rgba(69,166,255,.1); }
+
+  .chart-wrap { width: 100%; min-height: 460px; }
+  .chart-wrap svg { width: 100%; height: auto; display: block; }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .filter-chip {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 10px;
+    color: var(--muted);
+    background: var(--panel-2);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+  }
+  .filter-chip.active { color: #10151c; border-color: var(--gold); background: var(--gold); font-weight: 700; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+
+  table { width: 100%; border-collapse: collapse; min-width: 1060px; }
+
+  th, td { padding: 11px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--panel-2); z-index: 1; }
+  th { position: sticky; top: 0; background: #1f2836; color: #b7c0cd; font-size: 11px; font-weight: 700; z-index: 2; }
+  th:first-child { z-index: 3; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: rgba(69,166,255,.055); }
+  tbody tr:hover td:first-child { background: #202b3a; }
+
+  .team-cell { display: flex; align-items: center; gap: 10px; min-width: 190px; }
+  .team-logo {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #10151c;
+  }
+  .team-name { font-weight: 750; }
+  .team-region { display: block; color: var(--muted); font-size: 11px; }
+
+  .status {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .status.direct { background: rgba(79,214,155,.14); color: var(--green); }
+  .status.locked { background: rgba(69,166,255,.14); color: var(--blue); }
+  .status.battle { background: rgba(244,201,93,.14); color: var(--gold); }
+
+  .prob-bar { display: inline-block; width: 90px; height: 7px; border-radius: 5px; background: #29333f; vertical-align: middle; overflow: hidden; }
+  .prob-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--blue)); }
+
+  .win-good { color: var(--green); font-weight: 750; }
+  .win-mid { color: var(--gold); font-weight: 750; }
+  .win-bad { color: var(--red); font-weight: 750; }
+
+  .stage-track {
+    display: flex;
+    width: 112px;
+    height: 8px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #29333f;
+  }
+  .stage-track span { display: block; height: 100%; }
+
+  .insights {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .insight {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    padding: 16px;
+  }
+  .insight h3 { margin: 0 0 10px; font-size: 13px; color: var(--muted); font-weight: 700; }
+  .insight .main { font-size: 23px; font-weight: 800; }
+  .insight .note { margin-top: 6px; color: var(--muted); font-size: 12px; }
+  .insight-list { margin: 0; padding: 0; list-style: none; }
+  .insight-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .insight-list li:last-child { border-bottom: 0; }
+  .insight-list b { color: var(--text); }
+  .insight-list span { color: var(--muted); }
+
+  .method {
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,.015);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .method h2 { margin: 0 0 9px; color: var(--text); font-size: 14px; }
+  .method ul { margin: 8px 0 0; padding-left: 18px; }
+  .method li { margin: 4px 0; }
+  .method a { color: var(--cyan); }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  @media (max-width: 900px) {
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .insights { grid-template-columns: 1fr; }
+    header { align-items: flex-start; flex-direction: column; }
+    .source-pill { align-items: flex-start; }
+    .section-head { flex-direction: column; }
+    .chart-wrap { min-height: 0; }
+  }
+
+  @media (max-width: 520px) {
+    .shell { width: min(100% - 20px, 1440px); padding-top: 16px; }
+    .metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric { padding: 12px; }
+    .badge { width: 48px; height: 48px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">
+      <div class="badge">BLG</div>
+      <div>
+        <h1>BLG · S16 全球总决赛胜率模拟</h1>
+        <p>瑞士轮 + 淘汰赛全流程蒙特卡洛推演</p>
+      </div>
+    </div>
+    <div class="source-pill">
+      <span>数据基准：Riot Global Power Rankings</span>
+      <a href="https://lolesports.com/en-GB/gpr/2026/current" target="_blank" rel="noreferrer">lolesports.com · 更新于 2026-09-26</a>
+      <span>赛制与晋级信息：Liquipedia Worlds 2026</span>
+    </div>
+  </header>
+
+  <section class="metrics" aria-label="核心指标">
+    <div class="metric gold"><span class="label">BLG 夺冠概率</span><span id="metric-title" class="value">--</span><span id="metric-title-sub" class="sub">模拟中的召唤师杯归属</span></div>
+    <div class="metric blue"><span class="label">BLG 进入淘汰赛</span><span id="metric-knockout" class="value">--</span><span id="metric-knockout-sub" class="sub">瑞士轮 3 胜出线</span></div>
+    <div class="metric red"><span class="label">BLG 进入决赛</span><span id="metric-final" class="value">--</span><span id="metric-final-sub" class="sub">通过八强与半决赛</span></div>
+    <div class="metric violet"><span class="label">最高威胁</span><span id="metric-threat" class="value">--</span><span id="metric-threat-sub" class="sub">BLG 对其五局三胜胜率最低</span></div>
+    <div class="metric green"><span class="label">最可能对手</span><span id="metric-likely" class="value">--</span><span id="metric-likely-sub" class="sub">全赛程至少相遇一次的概率</span></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <h2>潜在对手图谱</h2>
+        <p>横轴为 BLG 对局胜率，纵轴为整个 S16 中两队至少相遇一次的概率；圆点越大表示战力分越高。</p>
+      </div>
+      <div class="controls">
+        <div class="segmented" role="group" aria-label="对局制式">
+          <button data-format="bo1" class="active">BO1</button>
+          <button data-format="bo3">BO3</button>
+          <button data-format="bo5">BO5</button>
+        </div>
+        <button id="rerun" class="run-button">重新模拟</button>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg id="scatter" viewBox="0 0 1000 540" role="img" aria-label="BLG 对潜在对手的胜率与相遇概率散点图"></svg></div>
+    <div class="chart-legend" id="chart-legend"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <h2>BLG 对全部潜在战队</h2>
+        <p>“名额概率”表示该队最终进入 S16 的概率；入围赛队伍还需赢下 BO5 双败才能进入瑞士轮。</p>
+      </div>
+      <div class="controls">
+        <div class="segmented" role="group" aria-label="排序方式">
+          <button data-sort="meet" class="active">按相遇概率</button>
+          <button data-sort="win">按 BLG 胜率</button>
+          <button data-sort="gpr">按战力分</button>
+        </div>
+      </div>
+    </div>
+    <div class="filters" id="region-filters" role="group" aria-label="赛区筛选"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>战队</th>
+            <th>赛区</th>
+            <th>名额概率</th>
+            <th>GPR</th>
+            <th>BLG BO1</th>
+            <th>BLG BO3</th>
+            <th>BLG BO5</th>
+            <th>总相遇概率</th>
+            <th>进入瑞士轮后</th>
+            <th>首轮概率</th>
+            <th>最可能阶段</th>
+            <th>阶段分布</th>
+          </tr>
+        </thead>
+        <tbody id="team-table"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="insights">
+    <div class="insight">
+      <h3>最难打的前五名</h3>
+      <ul class="insight-list" id="toughest"></ul>
+    </div>
+    <div class="insight">
+      <h3>BLG 最可能抽到的首轮对手</h3>
+      <ul class="insight-list" id="first-round"></ul>
+    </div>
+    <div class="insight">
+      <h3>BLG 阶段走势</h3>
+      <ul class="insight-list" id="journey"></ul>
+    </div>
+  </section>
+
+  <section class="method">
+    <h2>模型说明与限制</h2>
+    <ul>
+      <li>基础强度使用 Riot 官方 2026-09-26 更新的 Global Power Rankings 分数；对局胜率采用标准 Elo 逻辑斯蒂公式，<code>P = 1 / (1 + 10^(-分差/400))</code>。</li>
+      <li>BO1 使用单场概率；BO3/BO5 使用二项分布推算系列赛胜率。无畏征召会减少连续对局的独立性，因此系列赛结果的不确定性可能被略微低估。</li>
+      <li>瑞士轮首轮按“1 号池对 4 号池、2 号池对 3 号池”并执行同赛区规避；第二轮起按同战绩分组、无重复交手，推进赛和淘汰赛为 BO3，其余为 BO1。</li>
+      <li>LCS 与 CBLOL 季后赛尚未结束，模型会先按其当前双败赛程和剩余对局模拟出 LCS 三号种子及 CBLOL 两个名额；随后模拟四队入围赛双败 BO5。</li>
+      <li>抽签与比赛结果均含随机性，本页是概率模型，不是官方预测或投注建议。默认运行 <span id="sim-count">--</span> 次模拟。</li>
+    </ul>
+    <div style="margin-top:9px">
+      数据来源：<a href="https://lolesports.com/en-GB/gpr/2026/current" target="_blank" rel="noreferrer">Riot Global Power Rankings</a> ·
+      <a href="https://liquipedia.net/leagueoflegends/World_Championship/2026" target="_blank" rel="noreferrer">Liquipedia Worlds 2026</a> ·
+      <a href="https://liquipedia.net/leagueoflegends/LCS/2026/Summer" target="_blank" rel="noreferrer">LCS Summer Playoffs</a> ·
+      <a href="https://liquipedia.net/leagueoflegends/CBLOL/2026/Split_2" target="_blank" rel="noreferrer">CBLOL Split 2 Playoffs</a>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const TEAMS = {
+    blg:  { key:"blg", name:"Bilibili Gaming", short:"BLG", region:"LPL", score:1513, status:"direct", record:"48-11" },
+    hle:  { key:"hle", name:"Hanwha Life Esports", short:"HLE", region:"LCK", score:1540, status:"direct", record:"28-13" },
+    gen:  { key:"gen", name:"Gen.G", short:"GEN", region:"LCK", score:1519, status:"direct", record:"33-9" },
+    g2:   { key:"g2", name:"G2 Esports", short:"G2", region:"LEC", score:1475, status:"direct", record:"33-15" },
+    t1:   { key:"t1", name:"T1", short:"T1", region:"LCK", score:1471, status:"direct", record:"29-16" },
+    dk:   { key:"dk", name:"Dplus KIA", short:"DK", region:"LCK", score:1409, status:"direct", record:"27-16" },
+    al:   { key:"al", name:"Anyone's Legend", short:"AL", region:"LPL", score:1409, status:"direct", record:"32-18" },
+    kc:   { key:"kc", name:"Karmine Corp", short:"KC", region:"LEC", score:1375, status:"battle", record:"33-13" },
+    tsw:  { key:"tsw", name:"Secret Whales", short:"TSW", region:"LCP", score:1372, status:"direct", record:"26-6" },
+    tes:  { key:"tes", name:"Top Esports", short:"TES", region:"LPL", score:1364, status:"direct", record:"27-24" },
+    tl:   { key:"tl", name:"Team Liquid", short:"TL", region:"LCS", score:1360, status:"locked", record:"20-10" },
+    ig:   { key:"ig", name:"Invictus Gaming", short:"IG", region:"LPL", score:1348, status:"direct", record:"18-25" },
+    c9:   { key:"c9", name:"Cloud9", short:"C9", region:"LCS", score:1339, status:"locked", record:"20-5" },
+    mkoi: { key:"mkoi", name:"Movistar KOI", short:"MKOI", region:"LEC", score:1317, status:"direct", record:"22-18" },
+    cfo:  { key:"cfo", name:"CTBC Flying Oyster", short:"CFO", region:"LCP", score:1317, status:"direct", record:"12-14" },
+    mvk:  { key:"mvk", name:"MVK Esports", short:"MVK", region:"LCP", score:1247, status:"battle", record:"12-13" },
+    lyon: { key:"lyon", name:"Lyon Gaming", short:"LYON", region:"LCS", score:1445, status:"battle", record:"23-10" },
+    sr:   { key:"sr", name:"Shopify Rebellion", short:"SR", region:"LCS", score:1184, status:"battle", record:"6-14" },
+    fur:  { key:"fur", name:"FURIA", short:"FUR", region:"CBLOL", score:1194, status:"battle", record:"22-11" },
+    loud: { key:"loud", name:"LOUD", short:"LLL", region:"CBLOL", score:1181, status:"battle", record:"18-13" },
+    red:  { key:"red", name:"RED Canids", short:"RED", region:"CBLOL", score:1171, status:"battle", record:"18-13" },
+    los:  { key:"los", name:"LOS", short:"LOS", region:"CBLOL", score:1169, status:"battle", record:"21-9" }
+  };
+
+  const REGION_COLORS = {
+    LPL: "#45a6ff",
+    LCK: "#ff5c68",
+    LEC: "#f4c95d",
+    LCS: "#57d8d3",
+    LCP: "#b78cff",
+    CBLOL: "#ff9f5a"
+  };
+
+  const REGION_NAMES = {
+    LPL: "LPL · 中国大陆",
+    LCK: "LCK · 韩国",
+    LEC: "LEC · 欧洲",
+    LCS: "LCS · 北美",
+    LCP: "LCP · 亚太",
+    CBLOL: "CBLOL · 巴西"
+  };
+
+  const STAGE_COLORS = ["#45a6ff", "#b78cff", "#f4c95d", "#ff9f5a", "#ff5c68"];
+  const STAGE_NAMES = ["瑞士 R1", "瑞士 R2-5", "八强", "半决赛", "决赛"];
+
+  const N = 16000;
+  const BLG = TEAMS.blg;
+  document.getElementById("sim-count").textContent = N.toLocaleString("zh-CN");
+
+  function mulberry32(seed) {
+    return function() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function rng(seed) {
+    let value = seed >>> 0;
+    return function() {
+      value += 0x6D2B79F5;
+      let t = value;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffle(arr, rand) {
+    const out = arr.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  function gameP(a, b) {
+    return 1 / (1 + Math.pow(10, (b.score - a.score) / 400));
+  }
+
+  function seriesP(p, firstTo) {
+    if (firstTo === 1) return p;
+    let total = 0;
+    const q = 1 - p;
+    for (let losses = 0; losses < firstTo; losses++) {
+      let ways = 1;
+      for (let i = 1; i <= losses; i++) ways = ways * (firstTo - 1 + i) / i;
+      total += ways * Math.pow(p, firstTo) * Math.pow(q, losses);
+    }
+    return total;
+  }
+
+  function winnerOf(a, b, firstTo, rand) {
+    return rand() < seriesP(gameP(a, b), firstTo) ? a : b;
+  }
+
+  function simulateLCS(rand) {
+    const c9 = TEAMS.c9, tl = TEAMS.tl, lyon = TEAMS.lyon, sr = TEAMS.sr;
+    const ufWinner = winnerOf(c9, tl, 3, rand);
+    const ufLoser = ufWinner === c9 ? tl : c9;
+    const lsWinner = winnerOf(lyon, sr, 3, rand);
+    const lfWinner = winnerOf(ufLoser, lsWinner, 3, rand);
+    const lfLoser = lfWinner === ufLoser ? lsWinner : ufLoser;
+    const gfWinner = winnerOf(ufWinner, lfWinner, 3, rand);
+    const gfLoser = gfWinner === ufWinner ? lfWinner : ufWinner;
+    return { seed1: gfWinner, seed2: gfLoser, seed3: lfLoser };
+  }
+
+  function simulateCBLOL(rand) {
+    const fur = TEAMS.fur, loud = TEAMS.loud, red = TEAMS.red, los = TEAMS.los;
+    const ufWinner = winnerOf(loud, los, 3, rand);
+    const ufLoser = ufWinner === loud ? los : loud;
+    const lsWinner = winnerOf(fur, red, 3, rand);
+    const lfWinner = winnerOf(ufLoser, lsWinner, 3, rand);
+    const gfWinner = winnerOf(ufWinner, lfWinner, 3, rand);
+    const gfLoser = gfWinner === ufWinner ? lfWinner : ufWinner;
+    return { seed1: gfWinner, seed2: gfLoser };
+  }
+
+  function simulatePlayIn(rand, lcs3, cblol2) {
+    const entrants = shuffle([TEAMS.kc, TEAMS.mvk, lcs3, cblol2], rand);
+    const [a, b, c, d] = entrants;
+    const uw1 = winnerOf(a, b, 3, rand);
+    const uw2 = winnerOf(c, d, 3, rand);
+    const ul1 = uw1 === a ? b : a;
+    const ul2 = uw2 === c ? d : c;
+    const ufW = winnerOf(uw1, uw2, 3, rand);
+    const ufL = ufW === uw1 ? uw2 : uw1;
+    const l1W = winnerOf(ul1, ul2, 3, rand);
+    const lfW = winnerOf(ufL, l1W, 3, rand);
+    return winnerOf(ufW, lfW, 3, rand);
+  }
+
+  function regionOK(left, right) {
+    return left.region !== right.region;
+  }
+
+  function pairPools(a, b, rand) {
+    for (let attempt = 0; attempt < 120; attempt++) {
+      const aa = shuffle(a, rand);
+      const bb = shuffle(b, rand);
+      if (aa.every((t, i) => regionOK(t, bb[i]))) {
+        return aa.map((t, i) => [t, bb[i]]);
+      }
+    }
+    return a.map((t, i) => [t, b[i]]);
+  }
+
+  function pairRecordGroup(group, rand) {
+    for (let attempt = 0; attempt < 120; attempt++) {
+      const arr = shuffle(group, rand);
+      let ok = true;
+      for (let i = 0; i < arr.length; i += 2) {
+        if (arr[i].past.has(arr[i + 1].key)) { ok = false; break; }
+      }
+      if (ok) {
+        const pairs = [];
+        for (let i = 0; i < arr.length; i += 2) pairs.push([arr[i], arr[i + 1]]);
+        return pairs;
+      }
+    }
+    const arr = shuffle(group, rand);
+    const pairs = [];
+    for (let i = 0; i < arr.length; i += 2) pairs.push([arr[i], arr[i + 1]]);
+    return pairs;
+  }
+
+  function stageForPair(a, b, round) {
+    if (round === 1 || round === 2) return 1;
+    if (round === 3 && a.w === 1 && a.l === 1) return 1;
+    return 3;
+  }
+
+  function freshState(team) {
+    return { team, w: 0, l: 0, past: new Set() };
+  }
+
+  function runSimulation(seed) {
+    const rand = rng(seed);
+    const lcs = simulateLCS(rand);
+    const cblol = simulateCBLOL(rand);
+
+    const pool1 = [TEAMS.gen, TEAMS.al, lcs.seed1, TEAMS.g2];
+    const pool2 = [TEAMS.hle, TEAMS.blg, TEAMS.tsw, cblol.seed1];
+    const pool3 = [TEAMS.t1, TEAMS.tes, lcs.seed2, TEAMS.mkoi];
+    const playInWinner = simulatePlayIn(rand, lcs.seed3, cblol.seed2);
+    const pool4 = [TEAMS.dk, TEAMS.ig, TEAMS.cfo, playInWinner];
+
+    const entries = [pool1, pool2, pool3, pool4].flat();
+    const states = new Map(entries.map(t => [t.key, freshState(t)]));
+    const get = t => states.get(t.key);
+
+    const stats = {
+      meet: Object.fromEntries(Object.keys(TEAMS).map(k => [k, 0])),
+      stage: Object.fromEntries(Object.keys(TEAMS).map(k => [k, [0, 0, 0, 0, 0]])),
+      qualifiedWorlds: Object.fromEntries(Object.keys(TEAMS).map(k => [k, 0])),
+      qualifiedSwiss: Object.fromEntries(Object.keys(TEAMS).map(k => [k, 0])),
+      blgStages: [0, 0, 0, 0],
+    };
+
+    const worldsField = new Set([TEAMS.kc, TEAMS.mvk, lcs.seed3, cblol.seed2].map(t => t.key));
+    entries.forEach(t => worldsField.add(t.key));
+    worldsField.forEach(key => stats.qualifiedWorlds[key]++);
+    entries.forEach(t => stats.qualifiedSwiss[t.key]++);
+
+    function recordMeeting(a, b, stageIndex) {
+      const pair = a.key === "blg" ? b : (b.key === "blg" ? a : null);
+      if (!pair) return;
+      stats.meet[pair.key]++;
+      stats.stage[pair.key][stageIndex]++;
+    }
+
+    function playPair(a, b, round, stageIndex) {
+      const firstTo = stageForPair(a, b, round);
+      const awins = rand() < seriesP(gameP(a.team, b.team), firstTo);
+      const winner = awins ? a : b;
+      const loser = awins ? b : a;
+      winner.w++;
+      loser.l++;
+      a.past.add(b.team.key);
+      b.past.add(a.team.key);
+      recordMeeting(a.team, b.team, stageIndex);
+      return winner;
+    }
+
+    let pairs = [];
+    pairs.push(...pairPools(pool1, pool4, rand));
+    pairs.push(...pairPools(pool2, pool3, rand));
+    pairs.forEach(p => playPair(get(p[0]), get(p[1]), 1, 0));
+
+    for (let round = 2; round <= 5; round++) {
+      const active = entries.map(get).filter(s => s.w < 3 && s.l < 3);
+      const groups = new Map();
+      active.forEach(s => {
+        const key = `${s.w}-${s.l}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(s);
+      });
+      const order = [...groups.keys()].sort((a, b) => {
+        const [aw, al] = a.split("-").map(Number);
+        const [bw, bl] = b.split("-").map(Number);
+        return bw - aw || al - bl;
+      });
+      const roundPairs = [];
+      order.forEach(key => roundPairs.push(...pairRecordGroup(groups.get(key), rand)));
+      roundPairs.forEach(p => playPair(p[0], p[1], round, 1));
+    }
+
+    const qualified = entries.map(get).filter(s => s.w === 3);
+    const r30 = qualified.filter(s => s.l === 0);
+    const r31 = qualified.filter(s => s.l === 1);
+    const r32 = qualified.filter(s => s.l === 2);
+    const top2 = shuffle(r30, rand);
+    const bottom = shuffle(r32, rand);
+    const mid = shuffle(r31, rand);
+    const bracket = [
+      [top2[0], bottom[0]],
+      [top2[1], bottom[1]],
+      [mid[0], mid[1]],
+      [mid[2], bottom[2]]
+    ];
+
+    let roundTeams = bracket;
+    let stageIndex = 2;
+    let blgQualified = qualified.some(s => s.team.key === "blg");
+    let blgWonQF = false;
+    let blgWonSF = false;
+    let champion = null;
+    while (roundTeams.length) {
+      const next = [];
+      roundTeams.forEach(pair => {
+        const a = get(pair[0].team);
+        const b = get(pair[1].team);
+        const winner = playPair(a, b, 10, stageIndex);
+        if (winner.team.key === "blg") {
+          if (stageIndex === 2) blgWonQF = true;
+          if (stageIndex === 3) blgWonSF = true;
+        }
+        next.push(winner);
+      });
+      if (next.length === 1) champion = next[0].team;
+      stageIndex++;
+      roundTeams = [];
+      for (let i = 0; i < next.length; i += 2) {
+        if (i + 1 < next.length) roundTeams.push([next[i], next[i + 1]]);
+      }
+    }
+
+    if (blgQualified) stats.blgStages[0]++;
+    if (blgWonQF) stats.blgStages[1]++;
+    if (blgWonSF) stats.blgStages[2]++;
+    if (champion && champion.key === "blg") stats.blgStages[3]++;
+
+    return stats;
+  }
+
+  function runAll() {
+    const seed = Math.floor(Math.random() * 0x7fffffff);
+    const aggregate = {
+      meet: Object.fromEntries(Object.keys(TEAMS).map(k => [k, 0])),
+      stage: Object.fromEntries(Object.keys(TEAMS).map(k => [k, [0, 0, 0, 0, 0]])),
+      qualifiedWorlds: Object.fromEntries(Object.keys(TEAMS).map(k => [k, 0])),
+      qualifiedSwiss: Object.fromEntries(Object.keys(TEAMS).map(k => [k, 0])),
+      blgStages: [0, 0, 0, 0]
+    };
+
+    for (let i = 0; i < N; i++) {
+      const s = runSimulation(seed + i);
+      Object.keys(TEAMS).forEach(k => {
+        aggregate.meet[k] += s.meet[k];
+        for (let j = 0; j < 5; j++) aggregate.stage[k][j] += s.stage[k][j];
+        aggregate.qualifiedWorlds[k] += s.qualifiedWorlds[k];
+        aggregate.qualifiedSwiss[k] += s.qualifiedSwiss[k];
+      });
+      for (let j = 0; j < 4; j++) aggregate.blgStages[j] += s.blgStages[j];
+    }
+    return aggregate;
+  }
+
+  function teamLogoStyle(team) {
+    return { background: REGION_COLORS[team.region] };
+  }
+
+  function classForWin(p) {
+    if (p >= .62) return "win-good";
+    if (p >= .48) return "win-mid";
+    return "win-bad";
+  }
+
+  function statusLabel(team) {
+    if (team.status === "direct") return "直通瑞士轮";
+    if (team.status === "locked") return "已锁名额";
+    return "名额待定";
+  }
+
+  function regionFilter(selected) {
+    if (selected === "ALL") return () => true;
+    return t => t.region === selected;
+  }
+
+  let currentFormat = "bo1";
+  let currentSort = "meet";
+  let currentRegion = "ALL";
+  let latest = runAll();
+
+  function formatP(p) {
+    return (p * 100).toFixed(1) + "%";
+  }
+
+  function scoreFor(t, format) {
+    if (format === "bo1") return gameP(BLG, t);
+    if (format === "bo3") return seriesP(gameP(BLG, t), 2);
+    return seriesP(gameP(BLG, t), 3);
+  }
+
+  function maxStage(t) {
+    let best = 0, count = 0;
+    latest.stage[t.key].forEach((c, i) => {
+      if (c > count) { count = c; best = i; }
+    });
+    return STAGE_NAMES[best];
+  }
+
+  function renderMetrics() {
+    const title = latest.blgStages[3] / N;
+    const knockout = latest.blgStages[0] / N;
+    const final = latest.blgStages[2] / N;
+    const sorted = Object.values(TEAMS).filter(t => t.key !== "blg" && latest.qualifiedSwiss[t.key] > 0).sort((a, b) => scoreFor(a, "bo5") - scoreFor(b, "bo5"));
+    const likely = Object.values(TEAMS).filter(t => t.key !== "blg").sort((a, b) => latest.meet[b.key] - latest.meet[a.key])[0];
+
+    document.getElementById("metric-title").textContent = formatP(title);
+    document.getElementById("metric-knockout").textContent = formatP(knockout);
+    document.getElementById("metric-final").textContent = formatP(final);
+    document.getElementById("metric-threat").textContent = sorted[0] ? sorted[0].short : "--";
+    document.getElementById("metric-threat-sub").textContent = sorted[0] ? `五局三胜胜率 ${formatP(scoreFor(sorted[0], "bo5"))}` : "暂无可模拟对手";
+    document.getElementById("metric-likely").textContent = likely ? likely.short : "--";
+    document.getElementById("metric-likely-sub").textContent = likely ? `相遇概率 ${formatP(latest.meet[likely.key] / N)}` : "暂无数据";
+  }
+
+  function renderLegend() {
+    const el = document.getElementById("chart-legend");
+    el.innerHTML = Object.keys(REGION_COLORS).map(r => `<span><i class="legend-dot" style="background:${REGION_COLORS[r]}"></i>${REGION_NAMES[r]}</span>`).join("") + `<span style="margin-left:auto">仅显示进入瑞士轮概率大于 1% 的战队</span>`;
+  }
+
+  function renderChart() {
+    const svg = document.getElementById("scatter");
+    const container = svg.parentElement;
+    const measured = Math.max(320, Math.round(container.clientWidth || 1000));
+    const W = Math.max(360, measured);
+    const H = W < 700 ? Math.min(430, Math.max(300, Math.round(W * 1.05))) : Math.min(560, Math.round(W * .54));
+    const padL = W < 700 ? 48 : 62, padR = W < 700 ? 16 : 38, padT = 30, padB = 58;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const rows = Object.values(TEAMS)
+      .filter(t => t.key !== "blg" && latest.qualifiedSwiss[t.key] / N > .01)
+      .map(t => ({ t, x: scoreFor(t, currentFormat), y: latest.meet[t.key] / N }));
+
+    const xMin = .25, xMax = .95;
+    const x = v => padL + (v - xMin) / (xMax - xMin) * plotW;
+    const y = v => padT + (1 - v) * plotH;
+    const xTicks = W < 700 ? [.3, .5, .7, .9] : [.3, .4, .5, .6, .7, .8, .9];
+    const yTicks = [0, .25, .5, .75, 1];
+    const font = W < 700 ? 11 : 12;
+
+    let grid = `<line x1="${padL}" y1="${y(0)}" x2="${W - padR}" y2="${y(0)}" stroke="#273140" stroke-width="1"/>`;
+    xTicks.forEach(v => {
+      grid += `<line x1="${x(v)}" y1="${padT}" x2="${x(v)}" y2="${padT + plotH}" stroke="#222b37" stroke-width="1"/>
+      <text x="${x(v)}" y="${H - 34}" text-anchor="middle" fill="#718096" font-size="${font}">${Math.round(v * 100)}%</text>`;
+    });
+    yTicks.forEach(v => {
+      grid += `<text x="${padL - 11}" y="${y(v) + 4}" text-anchor="end" fill="#718096" font-size="${font}">${Math.round(v * 100)}%</text>`;
+    });
+
+    const dots = rows.map(({t, x: px, y: py}) => {
+      const r = Math.max(3.5, 4 + (t.score - 1150) / 65);
+      const meet = (latest.meet[t.key] / N * 100);
+      const win = scoreFor(t, currentFormat) * 100;
+      const color = REGION_COLORS[t.region];
+      const xPos = x(px), yPos = y(py);
+      const labeled = new Set(W < 700 ? ["hle", "gen", "t1"] : ["hle", "gen", "t1", "g2", "al", "tes"]);
+      const label = labeled.has(t.key)
+        ? `<text x="${Math.min(W - 5, xPos + r + 5)}" y="${yPos + 4}" fill="#d6deea" font-size="${font}" font-weight="700">${t.short}</text>`
+        : "";
+      return `<g>
+        <circle cx="${xPos}" cy="${yPos}" r="${r}" fill="${color}" fill-opacity=".9" stroke="#0d1117" stroke-width="1.5">
+          <title>${t.short} ${t.name}\nBLG ${currentFormat.toUpperCase()} 胜率：${win.toFixed(1)}%\n相遇概率：${meet.toFixed(1)}%\nGPR：${t.score}</title>
+        </circle>${label}</g>`;
+    }).join("");
+
+
+    svg.innerHTML = `${grid}${dots}
+      <text x="${padL}" y="${H - 8}" text-anchor="start" fill="#718096" font-size="${font}">BLG 胜率 →</text>
+      <text x="${padL}" y="${padT - 9}" fill="#718096" font-size="${font}">相遇概率</text>
+      <text x="${padL}" y="15" fill="#5c6c80" font-size="${font - 1}">BLG 的 ${currentFormat.toUpperCase()} 胜率越低，对手越靠左；相遇概率越高，位置越高</text>`;
+  }
+
+  function renderFilters() {
+    const regions = ["ALL", ...Object.keys(REGION_NAMES)];
+    const el = document.getElementById("region-filters");
+    el.innerHTML = regions.map(r => {
+      const label = r === "ALL" ? "全部赛区" : REGION_NAMES[r].split(" · ")[0];
+      return `<button class="filter-chip ${currentRegion === r ? "active" : ""}" data-region="${r}">${label}</button>`;
+    }).join("");
+  }
+
+  function renderTable() {
+    const rows = Object.values(TEAMS).filter(t => t.key !== "blg" && regionFilter(currentRegion)(t));
+    const sorters = {
+      meet: (a, b) => latest.meet[b.key] - latest.meet[a.key],
+      win: (a, b) => scoreFor(a, currentFormat) - scoreFor(b, currentFormat),
+      gpr: (a, b) => b.score - a.score
+    };
+    rows.sort(sorters[currentSort]);
+
+    const tbody = document.getElementById("team-table");
+    tbody.innerHTML = rows.map(t => {
+      const qw = latest.qualifiedWorlds[t.key] / N;
+      const qs = latest.qualifiedSwiss[t.key] / N;
+      const meet = latest.meet[t.key] / N;
+      const conditional = qs > 0 ? latest.meet[t.key] / latest.qualifiedSwiss[t.key] : 0;
+      const firstRound = latest.stage[t.key][0] / N;
+      const p1 = gameP(BLG, t);
+      const p3 = seriesP(p1, 2);
+      const p5 = seriesP(p1, 3);
+      const stageCounts = latest.stage[t.key];
+      const stageWidth = meet > 0 ? stageCounts.map(c => c / latest.meet[t.key] * 100) : [0, 0, 0, 0, 0];
+      const max = maxStage(t);
+      const isBLGRegion = t.region === "LPL";
+      return `<tr>
+        <td><div class="team-cell"><span class="team-logo" style="background:${REGION_COLORS[t.region]}">${t.short}</span><span><span class="team-name">${t.name}</span><span class="team-region">${t.short} · ${t.record}</span></span></div></td>
+        <td>${REGION_NAMES[t.region]}</td>
+        <td><span class="status ${t.status}">${statusLabel(t)}</span><br><small style="color:#8d99ab">${formatP(qw)}</small></td>
+        <td>${t.score}</td>
+        <td class="${classForWin(p1)}">${formatP(p1)}</td>
+        <td class="${classForWin(p3)}">${formatP(p3)}</td>
+        <td class="${classForWin(p5)}">${formatP(p5)}</td>
+        <td><span class="prob-bar"><span class="prob-fill" style="width:${Math.min(100, meet * 100)}%;background:linear-gradient(90deg,${REGION_COLORS[t.region]},${REGION_COLORS[t.region]}99)"></span></span><br><b>${formatP(meet)}</b></td>
+        <td>${formatP(conditional)}</td>
+        <td>${formatP(firstRound)}</td>
+        <td>${max}</td>
+        <td><span class="stage-track" title="${STAGE_NAMES.map((s, i) => `${s} ${stageWidth[i].toFixed(1)}%`).join(" · ")}">${stageWidth.map((v, i) => `<span style="width:${v}%;background:${STAGE_COLORS[i]}"></span>`).join("")}</span></td>
+      </tr>`;
+    }).join("");
+  }
+
+  function renderInsights() {
+    const tough = Object.values(TEAMS).filter(t => t.key !== "blg" && latest.qualifiedSwiss[t.key] > 0)
+      .sort((a, b) => scoreFor(a, "bo5") - scoreFor(b, "bo5")).slice(0, 5);
+    document.getElementById("toughest").innerHTML = tough.map(t =>
+      `<li><span>${t.short} <small>${t.name}</small></span><b>${formatP(scoreFor(t, "bo5"))}</b></li>`).join("");
+
+    const first = Object.values(TEAMS)
+      .map(t => ({t, p: latest.stage[t.key][0] / N}))
+      .sort((a, b) => b.p - a.p).filter(x => x.p > 0).slice(0, 5);
+    document.getElementById("first-round").innerHTML = first.map(x =>
+      `<li><span>${x.t.short} <small>${x.t.name}</small></span><b>${formatP(x.p)}</b></li>`).join("");
+
+    const labels = ["瑞士轮出局", "进入八强", "进入四强", "进入决赛", "夺冠"];
+    const colors = ["#ff5c68", "#45a6ff", "#b78cff", "#f4c95d", "#4fd69b"];
+    const vals = [
+      1 - latest.blgStages[0] / N,
+      latest.blgStages[0] / N,
+      latest.blgStages[1] / N,
+      latest.blgStages[2] / N,
+      latest.blgStages[3] / N
+    ];
+    document.getElementById("journey").innerHTML = labels.map((label, i) =>
+      `<li><span style="color:${colors[i]}">${label}</span><b>${formatP(vals[i])}</b></li>`).join("");
+  }
+
+  function render() {
+    renderMetrics();
+    renderLegend();
+    renderChart();
+    renderFilters();
+    renderTable();
+    renderInsights();
+  }
+
+  document.querySelectorAll("[data-format]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-format]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentFormat = btn.dataset.format;
+      renderChart();
+      renderTable();
+      renderInsights();
+    });
+  });
+
+  document.querySelectorAll("[data-sort]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-sort]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentSort = btn.dataset.sort;
+      renderTable();
+    });
+  });
+
+  document.getElementById("region-filters").addEventListener("click", e => {
+    const btn = e.target.closest("[data-region]");
+    if (!btn) return;
+    currentRegion = btn.dataset.region;
+    renderFilters();
+    renderTable();
+  });
+
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderChart, 120);
+  });
+  document.getElementById("rerun").addEventListener("click", () => {
+    latest = runAll();
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
